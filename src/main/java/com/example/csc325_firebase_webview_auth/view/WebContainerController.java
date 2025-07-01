@@ -1,152 +1,279 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
- */
 package com.example.csc325_firebase_webview_auth.view;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Worker.State;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import netscape.javascript.JSObject;
-import org.w3c.dom.Document;
-
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.nio.charset.StandardCharsets;
 
-/**
- * FXML Controller class
- *
- * @author MoaathAlrajab
- *
- *
- *
- *
- */
-public class WebContainerController implements Initializable {
-    Document doc;
-        private DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-            private static String HTML_STRING2 = //
-            "<html>"//
-                    + "<head> " //
-                   + "  <script language='javascript'> " //
-                   + "     function changeBgColor()  { "//
-                   + "       var color= document.getElementById('ueberschr').value; "//
-                   + "       document.body.style.backgroundColor= color; " //
-                   + "     } " //
-                   + "  </script> "//
-                    + "  </script> "//
-                    + "</head> "//
-                    + "<body> "//
-                    + "   <h2>This is Html content</h2> <input id='ueberschr' value='yellow' />"//
-                    + "   <button onclick='app12.showTime();changeBgColor();'>Call To JavaFX</button> "//
-                    + "</body> "//
-                    + "</html> "//
-    ;
- private static String HTML_STRING = //
-           "<html>"//
-                   + "<head> " //
-                   + "  <script language='javascript'> " //
-                   + "     function changeBgColor()  { "//
-                   + "       var color= document.getElementById('color').value; "//
-                   + "       document.body.style.backgroundColor= color; " //
-                   + "     } " //
-                   + "  </script> "//
-                   + "</head> "//
-                   + "<body> "//
-                   + "   <h2>This is Html content</h2> "//
-                   + "   <b>Enter Color:</b> "//
-                   + "   <input id='color' value='yellow' /> "//
-                   + "   <button onclick='changeBgColor();'>Change Bg Color</button> "//
-                   + "</body> "//
-                   + "</html> "//
-   ;
- 
-    @FXML
-    Label label;
-    
-    
-    
-    @FXML
-    WebView webView;
-    private WebEngine webEngine;
+import com.example.csc325_firebase_webview_auth.model.Person;
+import com.example.csc325_firebase_webview_auth.session.Session;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class WebContainerController {
+
+    private String projectId, apiKey;
+    private static final String COLLECTION = "people";
+
+    @FXML private TableView<Person> tableView;
+    @FXML private TableColumn<Person,String> colId, colFirstName, colLastName, colDepartment, colMajor, colEmail;
+    @FXML private ImageView profileImage;
+    @FXML private TextField firstNameField, lastNameField, departmentField, majorField, emailField, imageUrlField;
+    @FXML private Button clearButton, addButton, deleteButton, editButton;
+
+    private ObservableList<Person> data;
+    // **Declare** the default image reference
+    private Image defaultProfileImage;
 
     @FXML
-    private void goAction(ActionEvent evt) {
-        webEngine.load("http://google.com");
+    private void initialize() {
+        JSONObject cfg = loadConfig();
+        apiKey    = cfg.getString("apiKey");
+        projectId = cfg.getString("projectId");
+
+        // **Capture** whatever image is in the FXML as the default
+        defaultProfileImage = profileImage.getImage();
+
+        data = FXCollections.observableArrayList();
+        tableView.setItems(data);
+
+        colId         .setCellValueFactory(new PropertyValueFactory<>("id"));
+        colFirstName  .setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        colLastName   .setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        colDepartment .setCellValueFactory(new PropertyValueFactory<>("department"));
+        colMajor      .setCellValueFactory(new PropertyValueFactory<>("major"));
+        colEmail      .setCellValueFactory(new PropertyValueFactory<>("email"));
+
+        clearButton .setOnAction(e -> clearFields());
+        addButton   .setOnAction(e -> createRecord());
+        deleteButton.setOnAction(e -> deleteRecord());
+        editButton  .setOnAction(e -> updateRecord());
+
+        tableView.getSelectionModel().selectedItemProperty().addListener(
+            (obs, oldP, newP) -> { if (newP != null) loadIntoFields(newP); }
+        );
+
+        loadRecords();
     }
-    @FXML
-    private void setLabel(ActionEvent e){
-                            System.out.println("H1");
 
-        doc.getElementById("ueberschr").setAttribute("value", "Red");
+    private String baseUrl() {
+        return "https://firestore.googleapis.com/v1/projects/"
+            + projectId + "/databases/(default)/documents/" + COLLECTION;
     }
-    
-    @FXML
-    private void swithcBackStage(ActionEvent e){
+
+    private void loadRecords() {
+        data.clear();
         try {
-            App.setRoot("/files/AccessFBView.fxml");
-        } catch (IOException ex) {
-            Logger.getLogger(WebContainerController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-
-        try {
-            webEngine = webView.getEngine();
-                      //  webView.setContextMenuEnabled(false);
-            webEngine.loadContent(HTML_STRING2);
-
-            webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
-                @Override
-                public void changed(ObservableValue<? extends State> ov, State t, State newState) {
-                     if (newState == State.SUCCEEDED) {
-                         doc = webEngine.getDocument();
-                    // Get window object of page.
-                    JSObject jsobj = (JSObject) webEngine.executeScript("window");
-                                        System.out.println("H2");
-
-
-                    // Set member for 'window' object.
-                    // In Javascript access: window.myJavaMember....
-                    jsobj.setMember("app12", new Bridge());
+            HttpURLConnection c = openConnection(baseUrl() + "?key=" + apiKey, "GET");
+            int code = c.getResponseCode();
+            String body = readStream(c, code);
+            if (code == 200) {
+                JSONObject root = new JSONObject(body);
+                if (root.has("documents")) {
+                    JSONArray docs = root.getJSONArray("documents");
+                    for (Object o : docs) {
+                        JSONObject doc = (JSONObject) o;
+                        String fullName = doc.getString("name");
+                        String id = fullName.substring(fullName.lastIndexOf('/') + 1);
+                        JSONObject f = doc.getJSONObject("fields");
+                        data.add(new Person(
+                            id,
+                            f.optJSONObject("firstName").optString("stringValue",""),
+                            f.optJSONObject("lastName" ).optString("stringValue",""),
+                            f.optJSONObject("department").optString("stringValue",""),
+                            f.optJSONObject("major"     ).optString("stringValue",""),
+                            f.optJSONObject("email"     ).optString("stringValue",""),
+                            f.optJSONObject("imageUrl"  ).optString("stringValue","")
+                        ));
+                    }
                 }
-                }
-            });
-            webView.setContextMenuEnabled(false);
-            //txtURL.setText("http://www.google.com");
-            // webEngine.load("http://www.google.com");
-            webEngine.setJavaScriptEnabled(true);
-            //webEngine.load(
-                    // this.getClass().getResource("newhtml.html").toExternalForm()
-            //        "file://Users/MoaathAlrajab/Documents/demo265/MVVMExample/src/main/resources/com/mycompany/mvvmexample/newhtml.html"
-            //);
+            } else {
+                System.err.printf("LOAD %d → %s%n", code, body);
+                showAlert("Load Error","Could not load data.");
+            }
         } catch (Exception ex) {
-            Logger.getLogger(WebContainerController.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            showAlert("Load Error","Could not load data.");
         }
     }
-    
-        public class Bridge {
 
-        public void showTime() {
-            System.out.println("Show Time");
+    private void createRecord() {
+        try {
+            JSONObject flds = new JSONObject()
+                .put("firstName", new JSONObject().put("stringValue", firstNameField.getText()))
+                .put("lastName" , new JSONObject().put("stringValue", lastNameField.getText()))
+                .put("department",new JSONObject().put("stringValue", departmentField.getText()))
+                .put("major"    ,new JSONObject().put("stringValue", majorField.getText()))
+                .put("email"    ,new JSONObject().put("stringValue", emailField.getText()))
+                .put("imageUrl" ,new JSONObject().put("stringValue", imageUrlField.getText()));
+            JSONObject bodyJson = new JSONObject().put("fields", flds);
 
-            label.setText("Now is: " + df.format(new Date()));
+            HttpURLConnection c = openConnection(baseUrl() + "?key=" + apiKey, "POST");
+            writeBody(c, bodyJson.toString());
+
+            int code = c.getResponseCode();
+            String body = readStream(c, code);
+            if (code == 200) {
+                loadRecords();
+                tableView.getSelectionModel().selectLast();
+                clearFields();
+            } else {
+                System.err.printf("CREATE %d → %s%n", code, body);
+                showAlert("Create Error","Could not create record.");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showAlert("Create Error","Could not create record.");
         }
+    }
+
+    private void updateRecord() {
+        Person sel = tableView.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        try {
+            JSONObject flds = new JSONObject()
+                .put("firstName", new JSONObject().put("stringValue", firstNameField.getText()))
+                .put("lastName" , new JSONObject().put("stringValue", lastNameField.getText()))
+                .put("department",new JSONObject().put("stringValue", departmentField.getText()))
+                .put("major"    ,new JSONObject().put("stringValue", majorField.getText()))
+                .put("email"    ,new JSONObject().put("stringValue", emailField.getText()))
+                .put("imageUrl" ,new JSONObject().put("stringValue", imageUrlField.getText()));
+            JSONObject bodyJson = new JSONObject().put("fields", flds);
+
+            String urlStr = baseUrl()
+                + "/" + sel.getId()
+                + "?key=" + apiKey
+                + "&updateMask.fieldPaths=firstName"
+                + "&updateMask.fieldPaths=lastName"
+                + "&updateMask.fieldPaths=department"
+                + "&updateMask.fieldPaths=major"
+                + "&updateMask.fieldPaths=email"
+                + "&updateMask.fieldPaths=imageUrl";
+
+            HttpURLConnection c = openConnection(urlStr, "POST");
+            c.setRequestProperty("X-HTTP-Method-Override", "PATCH");
+            writeBody(c, bodyJson.toString());
+
+            int code = c.getResponseCode();
+            String body = readStream(c, code);
+            if (code == 200) {
+                loadRecords();
+                tableView.getSelectionModel().select(sel);
+                clearFields();
+            } else {
+                System.err.printf("UPDATE %d → %s%n", code, body);
+                showAlert("Update Error","Could not update record.");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showAlert("Update Error","Could not update record.");
+        }
+    }
+
+    private void deleteRecord() {
+        Person sel = tableView.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        try {
+            String urlStr = baseUrl() + "/" + sel.getId() + "?key=" + apiKey;
+            HttpURLConnection c = openConnection(urlStr, "DELETE");
+
+            int code = c.getResponseCode();
+            String body = readStream(c, code);
+            if (code == 200) {
+                loadRecords();
+                clearFields();
+            } else {
+                System.err.printf("DELETE %d → %s%n", code, body);
+                showAlert("Delete Error","Could not delete record.");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showAlert("Delete Error","Could not delete record.");
+        }
+    }
+
+    // --- Helpers ---
+
+    private HttpURLConnection openConnection(String urlStr, String method) throws IOException {
+        HttpURLConnection c = (HttpURLConnection)new URL(urlStr).openConnection();
+        c.setRequestMethod(method);
+        c.setRequestProperty("Content-Type", "application/json");
+        c.setRequestProperty("Authorization", "Bearer " + Session.getIdToken());
+        if (!"GET".equals(method) && !"DELETE".equals(method)) c.setDoOutput(true);
+        return c;
+    }
+
+    private void writeBody(HttpURLConnection c, String body) throws IOException {
+        try (OutputStream os = c.getOutputStream()) {
+            os.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    private String readStream(HttpURLConnection c, int code) throws IOException {
+        InputStream in = code == 200 ? c.getInputStream() : c.getErrorStream();
+        return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+            .lines().reduce("", String::concat);
+    }
+
+    private void clearFields() {
+        firstNameField.clear();
+        lastNameField.clear();
+        departmentField.clear();
+        majorField.clear();
+        emailField.clear();
+        imageUrlField.clear();
+        // reset image to the default captured at initialize()
+        profileImage.setImage(defaultProfileImage);
+        tableView.getSelectionModel().clearSelection();
+    }
+
+    private void loadIntoFields(Person p) {
+        firstNameField.setText(p.getFirstName());
+        lastNameField .setText(p.getLastName());
+        departmentField.setText(p.getDepartment());
+        majorField.setText(p.getMajor());
+        emailField.setText(p.getEmail());
+        imageUrlField.setText(p.getImageUrl());
+        if (!p.getImageUrl().isEmpty()) {
+            profileImage.setImage(new Image(p.getImageUrl(), true));
+        } else {
+            profileImage.setImage(null);
+        }
+    }
+
+    private JSONObject loadConfig() {
+        try (InputStream in = getClass().getResourceAsStream("/files/FirebaseAPI.json")) {
+            if (in == null) throw new IllegalStateException("Missing config");
+            String txt = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+                         .lines().reduce("", String::concat);
+            return new JSONObject(txt);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load config", e);
+        }
+    }
+
+    private void showAlert(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.showAndWait();
     }
 }
-

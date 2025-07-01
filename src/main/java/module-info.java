@@ -13,6 +13,8 @@ module com.example.csc325_firebase_webview_auth {
 
     requires google.cloud.core;
     requires com.google.auth;
+    requires org.json;
+    requires google.cloud.storage;
 
 
     opens com.example.csc325_firebase_webview_auth.viewmodel to jdk.jsobject;

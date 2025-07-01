@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.csc325_firebase_webview_auth.view.SplashScreenController"
+            prefWidth="1000" prefHeight="600">
+
+    <children>
+        <ImageView fitWidth="1000" fitHeight="600" preserveRatio="false" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0">
+            <image>
+                <Image url="https://l8rs.com/content/CSC325/FSCsplash.jpg" />
+            </image>
+        </ImageView>
+    </children>
+</AnchorPane>

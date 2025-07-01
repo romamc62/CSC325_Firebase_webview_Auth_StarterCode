@@ -1,0 +1,5 @@
+src/main/resources/files/*.json
+# Ignore build output
+**/*.class
+/target/
+*.iml

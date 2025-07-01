@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Button?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.csc325_firebase_webview_auth.view.LoginController"
+            styleClass="login-root"
+            prefWidth="1000" prefHeight="600">
+    <center>
+        <VBox spacing="20" alignment="CENTER">
+            <TextField fx:id="emailField" prefWidth="400" promptText="Email"/>
+            <PasswordField fx:id="passwordField" prefWidth="400" promptText="Password"/>
+            <HBox spacing="20" alignment="CENTER">
+                <Button fx:id="loginButton" text="Login" prefWidth="140"/>
+                <Button fx:id="signUpLink" text="Sign Up" prefWidth="140"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

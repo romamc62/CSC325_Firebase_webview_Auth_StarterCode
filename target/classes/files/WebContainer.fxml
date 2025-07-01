@@ -1,67 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.web.WebView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.csc325_firebase_webview_auth.view.WebContainerController">
-       <children>
-      <MenuBar maxWidth="1.7976931348623157E308" prefHeight="27.0" prefWidth="600.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <menus>
-          <Menu mnemonicParsing="false" text="File">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Edit">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <items>
-              <MenuItem mnemonicParsing="false" text="About" />
-            </items>
-          </Menu>
-        </menus>
-      </MenuBar>
-        <BorderPane layoutY="39.0" prefHeight="827.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="39.0">
-            <center>
-                <WebView fx:id="webView" minHeight="800.0" minWidth="600.0" prefHeight="800.0" prefWidth="600.0" />
-            </center>
-            <top>
-                <HBox prefHeight="27.0" prefWidth="431.0">
-               <children>
-                  <HBox prefHeight="30.0" prefWidth="600.0">
-                     <children>
-                        <Label fx:id="label" text="Label">
-                           <HBox.margin>
-                              <Insets right="50.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Button fx:id="btn2" onAction="#setLabel" text="change html">
-                           <HBox.margin>
-                              <Insets right="20.0" />
-                           </HBox.margin>
-                        </Button>
-                        <Button fx:id="btn" onAction="#swithcBackStage" text="Go Back">
-                           <HBox.margin>
-                              <Insets right="20.0" />
-                           </HBox.margin>
-                        </Button>
-                     </children>
-                  </HBox>
-               </children>
-            </HBox>
-            </top>
-        </BorderPane>
-    </children>
-    
-</AnchorPane>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.csc325_firebase_webview_auth.view.WebContainerController"
+            prefWidth="1000" prefHeight="600">
+
+    <left>
+        <VBox alignment="CENTER" spacing="20"
+              style="-fx-background-color: #b77f2e; -fx-padding: 20;">
+            <ImageView fx:id="profileImage"
+                       fitWidth="150" fitHeight="150"
+                       preserveRatio="true">
+                <image>
+                    <Image url="https://l8rs.com/content/CSC325/userIcon.png"/>
+                </image>
+            </ImageView>
+        </VBox>
+    </left>
+
+    <center>
+        <TableView fx:id="tableView" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="colId"
+                             text="ID" prefWidth="80"/>
+                <TableColumn fx:id="colFirstName"
+                             text="First Name" prefWidth="100"/>
+                <TableColumn fx:id="colLastName"
+                             text="Last Name" prefWidth="100"/>
+                <TableColumn fx:id="colDepartment"
+                             text="Department" prefWidth="100"/>
+                <TableColumn fx:id="colMajor"
+                             text="Major" prefWidth="100"/>
+                <TableColumn fx:id="colEmail"
+                             text="Email" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <right>
+        <VBox spacing="10"
+              style="-fx-background-color: #7cfc00; -fx-padding: 20;">
+            <TextField fx:id="firstNameField"  promptText="First Name"/>
+            <TextField fx:id="lastNameField"   promptText="Last Name"/>
+            <TextField fx:id="departmentField"  promptText="Department"/>
+            <TextField fx:id="majorField"       promptText="Major"/>
+            <TextField fx:id="emailField"       promptText="Email"/>
+            <TextField fx:id="imageUrlField"    promptText="Image URL"/>
+            <Button    fx:id="clearButton"      text="Clear"  prefWidth="100"/>
+            <Button    fx:id="addButton"        text="Add"    prefWidth="100"/>
+            <Button    fx:id="deleteButton"     text="Delete" prefWidth="100"/>
+            <Button    fx:id="editButton"       text="Edit"   prefWidth="100"/>
+        </VBox>
+    </right>
+
+    <bottom>
+        <VBox style="-fx-background-color: #888; -fx-pref-height: 10;"/>
+    </bottom>
+</BorderPane>
