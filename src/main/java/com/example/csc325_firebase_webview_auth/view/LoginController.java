@@ -1,6 +1,7 @@
 package com.example.csc325_firebase_webview_auth.view;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -97,8 +98,21 @@ public class LoginController {
         });
 
         signUpLink.setOnAction(e -> {
-            // your existing sign-up navigation...
-        });
+            try {
+        Parent signUp = FXMLLoader.load(
+            getClass().getResource("/files/SignUp.fxml")
+        );
+        Scene scene = new Scene(signUp);
+        scene.getStylesheets().add(
+            getClass().getResource("/files/StyleSheet.css").toExternalForm()
+        );
+        Stage stage = (Stage) signUpLink.getScene().getWindow();
+        stage.setScene(scene);
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        showAlert("Navigation Error", "Could not load Sign Up screen.");
+    }
+});
     }
 
     private JSONObject loadConfig() throws Exception {
